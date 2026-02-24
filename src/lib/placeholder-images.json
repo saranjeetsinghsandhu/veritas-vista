@@ -1,3 +1,16 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "campus-video-1",
+      "description": "A beautiful view of the main campus building under a clear blue sky",
+      "imageUrl": "https://images.unsplash.com/photo-1693496327443-b94681f39811?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYW1wdXMlMjBidWlsZGluZ3xlbnwwfHx8fDE3NzE5MzE2OTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "campus building"
+    },
+    {
+      "id": "student-life-video-1",
+      "description": "Students collaborating and studying together in a modern, well-lit library",
+      "imageUrl": "https://images.unsplash.com/photo-1693921398753-c5d114e8ae6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdHVkZW50cyUyMGxpYnJhcnl8ZW58MHx8fHwxNzcxODk4NjA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "students library"
+    }
+  ]
 }
