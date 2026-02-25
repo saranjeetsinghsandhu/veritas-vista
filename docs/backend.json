@@ -1,0 +1,369 @@
+{
+  "entities": {
+    "ParentProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ParentProfile",
+      "type": "object",
+      "description": "Represents a parent's profile within the Veritas Vista application, linked to their authentication details and associated students.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ParentProfile entity, typically corresponding to the external authentication system's user ID."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the parent."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the parent."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the parent, used for communication.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The primary contact phone number for the parent."
+        },
+        "addressStreet": {
+          "type": "string",
+          "description": "The street address of the parent's residence."
+        },
+        "addressCity": {
+          "type": "string",
+          "description": "The city of the parent's residence."
+        },
+        "addressState": {
+          "type": "string",
+          "description": "The state or province of the parent's residence."
+        },
+        "addressZip": {
+          "type": "string",
+          "description": "The postal or zip code of the parent's residence."
+        },
+        "studentIds": {
+          "type": "array",
+          "description": "An array of unique identifiers for students associated with this parent. (Relationship: Parent N:N Student)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the parent profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the parent profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StudentProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StudentProfile",
+      "type": "object",
+      "description": "Represents a student's profile within the Veritas Vista application, linked to their authentication details and associated parents.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the StudentProfile entity, typically corresponding to the external authentication system's user ID."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the student."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the student."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the student, used for communication.",
+          "format": "email"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "The student's date of birth.",
+          "format": "date"
+        },
+        "gradeLevel": {
+          "type": "number",
+          "description": "The current academic grade level of the student (e.g., 1-12)."
+        },
+        "enrollmentDate": {
+          "type": "string",
+          "description": "The date when the student was first enrolled.",
+          "format": "date"
+        },
+        "parentIds": {
+          "type": "array",
+          "description": "An array of unique identifiers for parents associated with this student. (Relationship: Student N:N Parent)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the student profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the student profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "dateOfBirth",
+        "gradeLevel",
+        "enrollmentDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "HomepageContent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HomepageContent",
+      "type": "object",
+      "description": "Stores the editable content displayed on the homepage, including campus descriptions and video showcases.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HomepageContent entity. Expected to be a singleton (e.g., 'main_content')."
+        },
+        "campusLifeDescription": {
+          "type": "string",
+          "description": "A substantial paragraph detailing campus life and features."
+        },
+        "videoUrls": {
+          "type": "array",
+          "description": "An array of URLs for embedded video showcases of the campus environment.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lastUpdatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the homepage content was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "campusLifeDescription",
+        "videoUrls",
+        "lastUpdatedAt"
+      ]
+    },
+    "FAQ": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FAQ",
+      "type": "object",
+      "description": "Stores frequently asked questions and their answers for the AI Campus Navigator chatbot.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FAQ entry."
+        },
+        "question": {
+          "type": "string",
+          "description": "The frequently asked question."
+        },
+        "answer": {
+          "type": "string",
+          "description": "The detailed answer to the question."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category the FAQ belongs to (e.g., 'Campus Life', 'Admissions', 'General')."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the FAQ entry was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the FAQ entry was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "question",
+        "answer",
+        "category",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FooterContent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FooterContent",
+      "type": "object",
+      "description": "Stores the contact information and social media links displayed in the application's persistent footer.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FooterContent entity. Expected to be a singleton (e.g., 'main_footer')."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "The primary contact email address for the institution.",
+          "format": "email"
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "The primary contact phone number for the institution."
+        },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the institution, displayed in the footer."
+        },
+        "socialMediaLinks": {
+          "type": "array",
+          "description": "An array of objects, each representing a social media link.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lastUpdatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the footer content was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "contactEmail",
+        "contactPhone",
+        "address",
+        "socialMediaLinks",
+        "lastUpdatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/parentProfiles/{parentId}",
+        "definition": {
+          "entityName": "ParentProfile",
+          "schema": {
+            "$ref": "#/backend/entities/ParentProfile"
+          },
+          "description": "Stores individual parent profiles. The document ID (`parentId`) MUST match the authenticated user's UID (`request.auth.uid`). Includes `studentIds` array to link to associated students.",
+          "params": [
+            {
+              "name": "parentId",
+              "description": "The unique identifier of the parent, corresponding to their Firebase Authentication UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/studentProfiles/{studentId}",
+        "definition": {
+          "entityName": "StudentProfile",
+          "schema": {
+            "$ref": "#/backend/entities/StudentProfile"
+          },
+          "description": "Stores individual student profiles. The document ID (`studentId`) MUST match the authenticated student's UID. Includes denormalized `parentIds` array for authorization independence, allowing associated parents to read student data efficiently via rules (e.g., `request.auth.uid in resource.data.parentIds`).",
+          "params": [
+            {
+              "name": "studentId",
+              "description": "The unique identifier of the student, corresponding to their Firebase Authentication UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/homepageContent/{contentId}",
+        "definition": {
+          "entityName": "HomepageContent",
+          "schema": {
+            "$ref": "#/backend/entities/HomepageContent"
+          },
+          "description": "Stores public, editable content for the application's homepage. Expected to be a singleton (e.g., `contentId = 'main_content'`). Read-only for all users, write-access restricted to administrative users defined in the `/admins` collection.",
+          "params": [
+            {
+              "name": "contentId",
+              "description": "The unique identifier for a piece of homepage content (e.g., 'main_content')."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/faqs/{faqId}",
+        "definition": {
+          "entityName": "FAQ",
+          "schema": {
+            "$ref": "#/backend/entities/FAQ"
+          },
+          "description": "Stores frequently asked questions and their answers for the AI Campus Navigator. Read-only for all users, write-access restricted to administrative users defined in the `/admins` collection.",
+          "params": [
+            {
+              "name": "faqId",
+              "description": "The unique identifier for an FAQ entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/footerContent/{contentId}",
+        "definition": {
+          "entityName": "FooterContent",
+          "schema": {
+            "$ref": "#/backend/entities/FooterContent"
+          },
+          "description": "Stores public, editable content for the application's persistent footer. Expected to be a singleton (e.g., `contentId = 'main_footer'`). Read-only for all users, write-access restricted to administrative users defined in the `/admins` collection.",
+          "params": [
+            {
+              "name": "contentId",
+              "description": "The unique identifier for a piece of footer content (e.g., 'main_footer')."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/admins/{userId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Stores a list of user UIDs who have administrative privileges within the application, following the DBAC principle. The document ID (`userId`) corresponds to the UID of an administrator. Only the existence of a document signifies an admin role.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user designated as an administrator, corresponding to their Firebase Authentication UID."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure prioritizes security, scalability, and debuggability following the core design principles. \n\n**Authorization Independence (CRITICAL):**\n1.  **Parent Profiles (`/parentProfiles/{parentId}`):** Access is strictly path-based. A parent's profile `parentId` MUST match their `request.auth.uid`. This design inherently achieves authorization independence as access to a parent's profile does not rely on fetching data from any other document. Rules can simply check `request.auth.uid == parentId`.\n2.  **Student Profiles (`/studentProfiles/{studentId}`):** For student self-access, `studentId` matches `request.auth.uid`, similar to parent profiles. For parents accessing their associated students, the crucial step is **denormalization**. Each `StudentProfile` document explicitly contains a `parentIds` array. This allows security rules to check `request.auth.uid in resource.data.parentIds` directly on the `StudentProfile` document itself. This eliminates the need for `get()` calls to a parent's profile to determine student access, thereby preserving atomic operations and simplifying rule debugging.\n3.  **Public Content (`/homepageContent`, `/faqs`, `/footerContent`):** These collections store static, public-facing data. Their access is global and read-only for all, therefore, they have no authorization dependencies on other documents.\n4.  **Admin Roles (`/admins/{userId}`):** Admin roles are established using a dedicated top-level collection. A user is an 'admin' if their UID exists as a document ID in this collection. While rules might use an `exists()` check (or `get().data`) for administrative write access, this is an approved pattern for Database Access Control (DBAC) roles and does not violate authorization independence for *data* access, as it's checking a top-level role, not a data-dependent authorization.\n\n**Query-Aware Security Rules (QAPs):**\n1.  **Parent Profiles (`/parentProfiles/{parentId}`):** Because the `parentId` in the path corresponds directly to `request.auth.uid`, `get` and `list` operations are naturally query-aware. A client can only request or list their own profile, fulfilling QAP by design.\n2.  **Student Profiles (`/studentProfiles/{studentId}`):** For students, individual `get` and `list` of their own profile works as above. For parents, the denormalized `parentIds` field is key. Security rules can be written to enforce that any `list` operation by a parent on the `/studentProfiles` collection *must* include a `where('parentIds', 'array-contains', request.auth.uid)` clause in the query. This ensures that parents can only retrieve (list) students explicitly linked to them, thereby supporting QAPs effectively by linking query constraints to security rules and the denormalized data structure.\n3.  **Public Content Collections (`/homepageContent`, `/faqs`, `/footerContent`):** These collections are globally readable. `allow read: if true;` directly supports QAPs as all documents are intentionally public and no client-side filtering is expected for public read access."
+  }
+}

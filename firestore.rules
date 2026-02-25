@@ -1,0 +1,181 @@
+/**
+ * # Firestore Security Rules
+ *
+ * ## Core Philosophy
+ * This ruleset enforces a security model with three distinct access tiers:
+ * 1.  **Private User Data**: Parent and Student profiles are owned by the user they represent.
+ * 2.  **Shared Relational Data**: Student profiles are readable by associated parents, whose UIDs are denormalized onto the student's document.
+ * 3.  **Public Content**: General application content (homepage, FAQs, footer) is publicly readable but can only be modified by administrators.
+ *
+ * ## Data Structure
+ * The data is organized into flat, top-level collections (e.g., /parentProfiles, /studentProfiles, /faqs). This structure simplifies rule logic and queries. There are no user-owned subcollections.
+ *
+ * ## Key Security Decisions
+ * - **Strict Ownership**: A user can only write to their own /parentProfiles/{userId} or /studentProfiles/{userId} document.
+ * - **Denormalization for Authorization**: The `/studentProfiles/{studentId}` documents contain a `parentIds` array. This allows the rules to grant read access to parents without performing extra lookups (`get` calls), making the check fast and efficient.
+ * - **Admin Roles**: Administrative privileges are managed via a dedicated `/admins` collection. A user is considered an admin if a document with their UID exists in this collection. Client-side modification of the `/admins` list is disabled for maximum security.
+ * - **User Enumeration Prevention**: Listing users from the `/parentProfiles` or `/admins` collections is explicitly disallowed to protect user privacy.
+ * - **Default Deny**: Any operation not explicitly granted is denied.
+ *
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the requesting user's UID matches the provided userId.
+     * This is the foundation for the ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks if the user is a designated administrator by verifying their
+     * UID exists as a document ID in the /admins collection.
+     */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    /**
+     * Checks if the document being accessed already exists in Firestore.
+     * Crucial for preventing writes to non-existent documents.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    /**
+     * Validates that the requesting user is listed in the student profile's
+     * 'parentIds' array, granting them read access.
+     */
+    function isParentOfStudent() {
+      return isSignedIn() && request.auth.uid in resource.data.parentIds;
+    }
+
+    /**
+     * Validates the integrity of the 'id' field for a user-owned document on create.
+     * Ensures the document's internal ID matches the document's path ID.
+     */
+    function hasValidIdOnCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * Validates the immutability of the 'id' field on update.
+     * Prevents re-assigning the ownership of a document.
+     */
+    function idIsImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Controls access to parent profiles. A parent can only manage their own profile.
+     * @path /parentProfiles/{parentId}
+     * @allow (create) An authenticated user creating their own profile document. `auth.uid == parentId`.
+     * @deny (get) An authenticated user trying to read another parent's profile.
+     * @principle Restricts access to a user's own data tree.
+     */
+    match /parentProfiles/{parentId} {
+      allow get: if isOwner(parentId);
+      allow list: if false;
+      allow create: if isOwner(parentId) && hasValidIdOnCreate(parentId);
+      allow update: if isOwner(parentId) && isExistingDoc() && idIsImmutable();
+      allow delete: if isOwner(parentId) && isExistingDoc();
+    }
+
+    /**
+     * @description Controls access to student profiles. A student owns their profile, but associated parents can read it.
+     * @path /studentProfiles/{studentId}
+     * @allow (get) A parent (`auth.uid` is in `parentIds`) reading their child's profile.
+     * @deny (update) A parent trying to update their child's profile.
+     * @principle Enforces document ownership for writes and shared access for reads via a denormalized array.
+     */
+    match /studentProfiles/{studentId} {
+      allow get: if isOwner(studentId) || isParentOfStudent();
+      // List is allowed for any signed-in user. The client MUST apply a query like
+      // where('parentIds', 'array-contains', auth.uid) to securely filter results.
+      allow list: if isSignedIn();
+      allow create: if isOwner(studentId) && hasValidIdOnCreate(studentId);
+      allow update: if isOwner(studentId) && isExistingDoc() && idIsImmutable();
+      allow delete: if isOwner(studentId) && isExistingDoc();
+    }
+
+    /**
+     * @description Public, read-only content for the homepage. Writable only by admins.
+     * @path /homepageContent/{contentId}
+     * @allow (get) Any user, including unauthenticated ones, reading the homepage content.
+     * @deny (create) A non-admin user trying to create homepage content.
+     * @principle Segregates public data and protects it with role-based write access.
+     */
+    match /homepageContent/{contentId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isExistingDoc();
+      allow delete: if isAdmin() && isExistingDoc();
+    }
+
+    /**
+     * @description Public, read-only FAQs. Writable only by admins.
+     * @path /faqs/{faqId}
+     * @allow (list) Any user, including unauthenticated ones, listing all FAQs.
+     * @deny (update) A non-admin user trying to change an FAQ.
+     * @principle Segregates public data and protects it with role-based write access.
+     */
+    match /faqs/{faqId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isExistingDoc();
+      allow delete: if isAdmin() && isExistingDoc();
+    }
+
+    /**
+     * @description Public, read-only content for the footer. Writable only by admins.
+     * @path /footerContent/{contentId}
+     * @allow (get) Any user, including unauthenticated ones, reading the footer content.
+     * @deny (delete) A non-admin user trying to delete the footer content.
+     * @principle Segregates public data and protects it with role-based write access.
+     */
+    match /footerContent/{contentId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isExistingDoc();
+      allow delete: if isAdmin() && isExistingDoc();
+    }
+
+    /**
+     * @description Manages admin roles. Documents here act as flags. Client modification is disabled.
+     * @path /admins/{userId}
+     * @allow (N/A) No operations are permitted from the client.
+     * @deny (get, list, create, update, delete) All client-side operations are forbidden to prevent enumeration and unauthorized promotion.
+     * @principle Secures role-defining data by making it read-only and non-listable from the client. Admins must be managed server-side.
+     */
+    match /admins/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
