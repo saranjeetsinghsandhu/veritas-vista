@@ -1,10 +1,9 @@
 'use client';
 
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useCollection, useDoc, type WithId } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { collection, doc } from 'firebase/firestore';
-import { useCollection, useDoc, type WithId } from '@/firebase/firestore/use-collection';
 import { Loader2, BookOpen, CalendarCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -184,4 +183,3 @@ export default function StudentDashboardPage() {
     </div>
   );
 }
-    

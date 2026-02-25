@@ -1,11 +1,9 @@
 'use client';
 
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useCollection, useDoc, type WithId } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { collection, doc, query, where } from 'firebase/firestore';
-import { useCollection, useDoc } from '@/firebase';
-import type { WithId } from '@/firebase/firestore/use-collection';
 import { Loader2, BookOpen, CalendarCheck, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -23,17 +21,19 @@ interface ParentProfile {
 interface StudentProfile {
     id: string;
     firstName: string;
-lastName: string;
+    lastName: string;
     gradeLevel: number;
 }
 
 interface Grade {
+  id: string;
   courseName: string;
   score: number;
   letterGrade: string;
 }
 
 interface AttendanceRecord {
+  id: string;
   date: string;
   status: 'Present' | 'Absent' | 'Tardy' | 'Excused';
 }
@@ -47,10 +47,10 @@ function StudentDetails({ studentId }: { studentId: string }) {
     const { data: studentProfile, isLoading: isProfileLoading } = useDoc<StudentProfile>(studentProfileRef);
     
     const gradesQuery = useMemoFirebase(() => collection(firestore, 'studentProfiles', studentId, 'grades'), [firestore, studentId]);
-    const { data: grades, isLoading: areGradesLoading } = useCollection<Grade>(gradesQuery);
+    const { data: grades, isLoading: areGradesLoading } = useCollection<WithId<Grade>>(gradesQuery);
 
     const attendanceQuery = useMemoFirebase(() => collection(firestore, 'studentProfiles', studentId, 'attendance'), [firestore, studentId]);
-    const { data: attendance, isLoading: isAttendanceLoading } = useCollection<AttendanceRecord>(attendanceQuery);
+    const { data: attendance, isLoading: isAttendanceLoading } = useCollection<WithId<AttendanceRecord>>(attendanceQuery);
 
     if (isProfileLoading || areGradesLoading || isAttendanceLoading) {
         return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -246,4 +246,3 @@ export default function ParentDashboardPage() {
         </div>
     );
 }
-    
