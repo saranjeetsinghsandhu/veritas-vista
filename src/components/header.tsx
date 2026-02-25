@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from './logo';
@@ -11,7 +11,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from "firebase/auth";
+import { useRouter } from 'next/navigation';
+import { useToast } from "@/hooks/use-toast";
 
 
 const navLinks = [
@@ -21,6 +25,32 @@ const navLinks = [
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+    try {
+      await signOut(auth);
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      router.push('/');
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast({
+        variant: 'destructive',
+        title: "Logout failed",
+        description: "Could not log you out. Please try again.",
+      });
+    }
+  };
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
@@ -39,39 +69,50 @@ export function Header() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <nav className="hidden md:flex items-center space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost">
-                  Parent Portal <ChevronDown className="ml-1 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href="/parent-login">Login</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/parent-signup">Sign Up</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button>
-                        Student Portal <ChevronDown className="ml-1 h-4 w-4" />
+          <div className="hidden md:flex items-center space-x-2">
+            {isUserLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : user ? (
+              <Button variant="ghost" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            ) : (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost">
+                      Parent Portal <ChevronDown className="ml-1 h-4 w-4" />
                     </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
-                      <Link href="/student-login">Login</Link>
+                      <Link href="/parent-login">Login</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/student-signup">Sign Up</Link>
+                      <Link href="/parent-signup">Sign Up</Link>
                     </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-          </nav>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button>
+                            Student Portal <ChevronDown className="ml-1 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href="/student-login">Login</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/student-signup">Sign Up</Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+          </div>
 
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -98,28 +139,41 @@ export function Header() {
                     ))}
                 </div>
                 <div className="border-t pt-4 space-y-4">
-                    <div>
-                        <p className="px-2 pb-2 text-sm font-semibold text-muted-foreground">Parent Portal</p>
-                        <div className="space-y-2">
-                            <Button variant="outline" className="w-full" asChild>
-                                <Link href="/parent-login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
-                            </Button>
-                            <Button className="w-full" asChild>
-                                <Link href="/parent-signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
-                            </Button>
-                        </div>
+                  {isUserLoading ? (
+                    <div className="flex justify-center">
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     </div>
-                     <div>
-                        <p className="px-2 pb-2 text-sm font-semibold text-muted-foreground">Student Portal</p>
-                        <div className="space-y-2">
-                            <Button variant="outline" className="w-full" asChild>
-                                <Link href="/student-login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
-                            </Button>
-                            <Button className="w-full" asChild>
-                                <Link href="/student-signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
-                            </Button>
-                        </div>
-                    </div>
+                  ) : user ? (
+                    <Button variant="outline" className="w-full" onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                    </Button>
+                  ) : (
+                    <>
+                      <div>
+                          <p className="px-2 pb-2 text-sm font-semibold text-muted-foreground">Parent Portal</p>
+                          <div className="space-y-2">
+                              <Button variant="outline" className="w-full" asChild>
+                                  <Link href="/parent-login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+                              </Button>
+                              <Button className="w-full" asChild>
+                                  <Link href="/parent-signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
+                              </Button>
+                          </div>
+                      </div>
+                      <div>
+                          <p className="px-2 pb-2 text-sm font-semibold text-muted-foreground">Student Portal</p>
+                          <div className="space-y-2">
+                              <Button variant="outline" className="w-full" asChild>
+                                  <Link href="/student-login" onClick={() => setIsMobileMenuOpen(false)}>Login</Link>
+                              </Button>
+                              <Button className="w-full" asChild>
+                                  <Link href="/student-signup" onClick={() => setIsMobileMenuOpen(false)}>Sign Up</Link>
+                              </Button>
+                          </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </SheetContent>

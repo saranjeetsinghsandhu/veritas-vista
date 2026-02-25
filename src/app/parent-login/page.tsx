@@ -48,8 +48,7 @@ export default function ParentLoginPage() {
     const handleLogin: SubmitHandler<FormValues> = async (data) => {
         setIsLoading(true);
         try {
-            const user = await loginWithEmail(auth, data.email, data.password);
-            console.log(user.uid);
+            await loginWithEmail(auth, data.email, data.password);
             toast({
                 title: "Login Successful",
                 description: "Welcome back!",
@@ -79,7 +78,7 @@ export default function ParentLoginPage() {
         setIsLoading(false);
     };
     
-    if (isUserLoading) {
+    if (isUserLoading || user) {
         return (
             <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
                 <Loader2 className="h-8 w-8 animate-spin" />
