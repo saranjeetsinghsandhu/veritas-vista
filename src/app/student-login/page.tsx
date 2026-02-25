@@ -13,6 +13,7 @@ import { loginWithEmail } from "@/firebase/auth/login";
 import { useRouter } from 'next/navigation';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address.'),
@@ -110,6 +111,12 @@ export default function StudentLoginPage() {
                             {isLoading ? <Loader2 className="animate-spin" /> : "Sign In"}
                         </Button>
                     </form>
+                    <div className="mt-4 text-center text-sm">
+                        Don&apos;t have an account?{" "}
+                        <Link href="/student-signup" className="underline">
+                            Sign up
+                        </Link>
+                    </div>
                 </CardContent>
                 </Card>
             </div>
