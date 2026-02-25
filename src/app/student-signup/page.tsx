@@ -40,8 +40,7 @@ export default function StudentSignUpPage() {
 
     useEffect(() => {
         if (user) {
-            // TODO: Redirect to a student dashboard
-            router.push('/');
+            router.push('/student-dashboard');
         }
     }, [user, router]);
 
@@ -51,11 +50,10 @@ export default function StudentSignUpPage() {
             await signupWithEmail(auth, data.email, data.password);
             toast({
                 title: "Sign Up Successful",
-                description: "Your account has been created. Welcome!",
+                description: "Your account has been created. Redirecting...",
             });
             // The useEffect will handle redirection.
         } catch (error: any) {
-            console.error("Sign up failed:", error);
             let description = "An unexpected error occurred. Please try again.";
             if (error.code) {
                 switch (error.code) {
@@ -120,3 +118,4 @@ export default function StudentSignUpPage() {
         </div>
     );
 }
+    

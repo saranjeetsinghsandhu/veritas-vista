@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Menu, X, ChevronDown, LogOut, Loader2 } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut, Loader2, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from './logo';
@@ -73,10 +73,25 @@ export function Header() {
             {isUserLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : user ? (
-              <Button variant="ghost" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost">
+                    My Account <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className='flex items-center'>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <DropdownMenu>
@@ -144,10 +159,15 @@ export function Header() {
                       <Loader2 className="h-5 w-5 animate-spin" />
                     </div>
                   ) : user ? (
-                    <Button variant="outline" className="w-full" onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Logout
-                    </Button>
+                    <>
+                      <Button variant="default" className="w-full" asChild>
+                          <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={handleLogout}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Logout
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <div>
@@ -183,3 +203,4 @@ export function Header() {
     </header>
   );
 }
+    

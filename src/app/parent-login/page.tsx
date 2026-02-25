@@ -40,8 +40,7 @@ export default function ParentLoginPage() {
 
     useEffect(() => {
         if (user) {
-            // TODO: Redirect to a parent dashboard
-            router.push('/');
+            router.push('/parent-dashboard');
         }
     }, [user, router]);
 
@@ -51,11 +50,10 @@ export default function ParentLoginPage() {
             await loginWithEmail(auth, data.email, data.password);
             toast({
                 title: "Login Successful",
-                description: "Welcome back!",
+                description: "Redirecting to your dashboard...",
             });
             // The useEffect will handle redirection.
         } catch (error: any) {
-            console.error("Login failed:", error);
             let description = "An unexpected error occurred. Please try again.";
             if (error.code) {
                 switch (error.code) {
@@ -122,3 +120,4 @@ export default function ParentLoginPage() {
         </div>
     );
 }
+    

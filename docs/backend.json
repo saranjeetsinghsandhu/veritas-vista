@@ -257,6 +257,71 @@
         "socialMediaLinks",
         "lastUpdatedAt"
       ]
+    },
+    "Grade": {
+      "title": "Grade",
+      "type": "object",
+      "description": "Represents a single grade for a student in a specific course.",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "description": "The ID of the student."
+        },
+        "courseName": {
+          "type": "string",
+          "description": "The name of the course."
+        },
+        "term": {
+          "type": "string",
+          "description": "The academic term (e.g., 'Fall 2024')."
+        },
+        "score": {
+          "type": "number",
+          "description": "The numerical score (0-100)."
+        },
+        "letterGrade": {
+          "type": "string",
+          "description": "The letter grade (e.g., 'A', 'B+')."
+        }
+      },
+      "required": [
+        "studentId",
+        "courseName",
+        "term",
+        "score",
+        "letterGrade"
+      ]
+    },
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "type": "object",
+      "description": "Represents a student's attendance for a single day.",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "description": "The ID of the student."
+        },
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "The date of the record."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Present",
+            "Absent",
+            "Tardy",
+            "Excused"
+          ],
+          "description": "The attendance status."
+        }
+      },
+      "required": [
+        "studentId",
+        "date",
+        "status"
+      ]
     }
   },
   "auth": {
@@ -295,6 +360,46 @@
             {
               "name": "studentId",
               "description": "The unique identifier of the student, corresponding to their Firebase Authentication UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/studentProfiles/{studentId}/grades/{gradeId}",
+        "definition": {
+          "entityName": "Grade",
+          "schema": {
+            "$ref": "#/backend/entities/Grade"
+          },
+          "description": "Stores grades for a specific student.",
+          "params": [
+            {
+              "name": "studentId",
+              "description": "The unique identifier of the student."
+            },
+            {
+              "name": "gradeId",
+              "description": "The unique identifier for the grade entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/studentProfiles/{studentId}/attendance/{attendanceId}",
+        "definition": {
+          "entityName": "AttendanceRecord",
+          "schema": {
+            "$ref": "#/backend/entities/AttendanceRecord"
+          },
+          "description": "Stores attendance records for a specific student.",
+          "params": [
+            {
+              "name": "studentId",
+              "description": "The unique identifier of the student."
+            },
+            {
+              "name": "attendanceId",
+              "description": "The unique identifier for the attendance entry."
             }
           ]
         }
@@ -367,3 +472,4 @@
     "reasoning": "The Firestore structure prioritizes security, scalability, and debuggability following the core design principles. \n\n**Authorization Independence (CRITICAL):**\n1.  **Parent Profiles (`/parentProfiles/{parentId}`):** Access is strictly path-based. A parent's profile `parentId` MUST match their `request.auth.uid`. This design inherently achieves authorization independence as access to a parent's profile does not rely on fetching data from any other document. Rules can simply check `request.auth.uid == parentId`.\n2.  **Student Profiles (`/studentProfiles/{studentId}`):** For student self-access, `studentId` matches `request.auth.uid`, similar to parent profiles. For parents accessing their associated students, the crucial step is **denormalization**. Each `StudentProfile` document explicitly contains a `parentIds` array. This allows security rules to check `request.auth.uid in resource.data.parentIds` directly on the `StudentProfile` document itself. This eliminates the need for `get()` calls to a parent's profile to determine student access, thereby preserving atomic operations and simplifying rule debugging.\n3.  **Public Content (`/homepageContent`, `/faqs`, `/footerContent`):** These collections store static, public-facing data. Their access is global and read-only for all, therefore, they have no authorization dependencies on other documents.\n4.  **Admin Roles (`/admins/{userId}`):** Admin roles are established using a dedicated top-level collection. A user is an 'admin' if their UID exists as a document ID in this collection. While rules might use an `exists()` check (or `get().data`) for administrative write access, this is an approved pattern for Database Access Control (DBAC) roles and does not violate authorization independence for *data* access, as it's checking a top-level role, not a data-dependent authorization.\n\n**Query-Aware Security Rules (QAPs):**\n1.  **Parent Profiles (`/parentProfiles/{parentId}`):** Because the `parentId` in the path corresponds directly to `request.auth.uid`, `get` and `list` operations are naturally query-aware. A client can only request or list their own profile, fulfilling QAP by design.\n2.  **Student Profiles (`/studentProfiles/{studentId}`):** For students, individual `get` and `list` of their own profile works as above. For parents, the denormalized `parentIds` field is key. Security rules can be written to enforce that any `list` operation by a parent on the `/studentProfiles` collection *must* include a `where('parentIds', 'array-contains', request.auth.uid)` clause in the query. This ensures that parents can only retrieve (list) students explicitly linked to them, thereby supporting QAPs effectively by linking query constraints to security rules and the denormalized data structure.\n3.  **Public Content Collections (`/homepageContent`, `/faqs`, `/footerContent`):** These collections are globally readable. `allow read: if true;` directly supports QAPs as all documents are intentionally public and no client-side filtering is expected for public read access."
   }
 }
+    

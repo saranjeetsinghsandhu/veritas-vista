@@ -65,6 +65,15 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid in resource.data.parentIds;
     }
 
+     /**
+     * For subcollection rules, checks if the requesting user is a parent of the
+     * student identified in the path. This requires a 'get' call to the parent document.
+     */
+    function isParentOfStudentInPath(studentId) {
+      let studentProfile = get(/databases/$(database)/documents/studentProfiles/$(studentId)).data;
+      return isSignedIn() && request.auth.uid in studentProfile.parentIds;
+    }
+
     /**
      * Validates the integrity of the 'id' field for a user-owned document on create.
      * Ensures the document's internal ID matches the document's path ID.
@@ -102,20 +111,40 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to student profiles. A student owns their profile, but associated parents can read it.
+     * @description Controls access to student profiles and their subcollections (grades, attendance).
      * @path /studentProfiles/{studentId}
-     * @allow (get) A parent (`auth.uid` is in `parentIds`) reading their child's profile.
+     * @allow (get) A student accessing their own profile, or a parent accessing their child's profile.
      * @deny (update) A parent trying to update their child's profile.
      * @principle Enforces document ownership for writes and shared access for reads via a denormalized array.
      */
     match /studentProfiles/{studentId} {
       allow get: if isOwner(studentId) || isParentOfStudent();
-      // List is allowed for any signed-in user. The client MUST apply a query like
-      // where('parentIds', 'array-contains', auth.uid) to securely filter results.
-      allow list: if isSignedIn();
+      allow list: if isSignedIn(); // Client must filter by parentId
       allow create: if isOwner(studentId) && hasValidIdOnCreate(studentId);
       allow update: if isOwner(studentId) && isExistingDoc() && idIsImmutable();
       allow delete: if isOwner(studentId) && isExistingDoc();
+
+      /**
+       * @description Controls access to a student's grades.
+       * @path /studentProfiles/{studentId}/grades/{gradeId}
+       * @allow (read) The student or their parent can read grades.
+       * @deny (write) Only admins can write/update grades.
+       */
+      match /grades/{gradeId} {
+        allow get, list: if isOwner(studentId) || isParentOfStudentInPath(studentId);
+        allow create, update, delete: if isAdmin();
+      }
+
+      /**
+       * @description Controls access to a student's attendance records.
+       * @path /studentProfiles/{studentId}/attendance/{attendanceId}
+       * @allow (read) The student or their parent can read attendance records.
+       * @deny (write) Only admins can write/update attendance records.
+       */
+      match /attendance/{attendanceId} {
+        allow get, list: if isOwner(studentId) || isParentOfStudentInPath(studentId);
+        allow create, update, delete: if isAdmin();
+      }
     }
 
     /**
@@ -179,3 +208,4 @@ service cloud.firestore {
     }
   }
 }
+    
